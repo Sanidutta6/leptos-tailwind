@@ -1,0 +1,10 @@
+[package]
+name = "leptos-tutorial"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+gloo-net = "0.6.0" # For client side HTTP requests
+leptos = { version = "0.8.15", features = ["csr"] }
+leptos_router = "0.8.11"
