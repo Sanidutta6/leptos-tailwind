@@ -3,7 +3,7 @@ use leptos::mount::mount_to_body;
 mod app;
 mod components;
 mod pages;
-// mod api;
+mod api;
 
 use app::App;
 
