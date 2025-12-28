@@ -1,14 +1,15 @@
-use anyhow::Result;
-use gloo_net::http::Request;
-use serde::{Deserialize, Serialize};
 use std::fmt;
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use crate::api::_api_request::api_request;
+use std::option::Option::None;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct User {
-    id: u32,
-    username: String,
-    email: String,
-    password: String,
+pub struct User {
+    pub id: u32,
+    pub username: String,
+    pub email: String,
+    pub password: String,
 }
 
 impl fmt::Display for User {
@@ -21,69 +22,46 @@ impl fmt::Display for User {
     }
 }
 
-// Base URL
-pub fn base_url() -> &'static str {
+fn base_url() -> &'static str {
     option_env!("BASE_URL").unwrap_or("https://fakestoreapi.com/")
 }
 
-pub async fn get_all_users() -> Vec<User> {
+/// GET /users
+pub async fn get_all_users() -> Result<Vec<User>> {
     let url = format!("{}users", base_url());
-    let users: Vec<User> = Request::get(&url)
-        .header("Content-Type", "application/json")
-        .send()
-        .await?
-        .json()
-        .await?;
+    let users: Vec<User> = api_request("GET", &url, None::<()>).await?;
 
-    println!("get_all_user, response: {:#?}", users);
+    println!("get_all_users, response: {:#?}", users);
     Ok(users)
 }
 
 pub async fn get_a_user(user_id: u32) -> Result<User> {
-    let user: User = Request::get(format!("{}users/{}", base_url(), user_id))
-    .header("Content-Type", "application/json")
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}users/{}", base_url(), user_id);
+    let user: User = api_request("GET", &url, None::<()>).await?;
 
     println!("get_a_user, response: {}", user);
     Ok(user)
 }
 
 pub async fn add_a_user(new_user: User) -> Result<User> {
-    let user: User = Request::post(format!("{}users", base_url()))
-    .header("Content-Type", "application/json")
-    .json(&new_user)?
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}users", base_url());
+    let user: User = api_request("POST", &url, Some(new_user)).await?;
 
     println!("add_a_user, response: {}", user);
     Ok(user)
 }
 
 pub async fn update_a_user(updated_user: User) -> Result<User> {
-    let user: User = Request::put(format!("{}users", base_url()))
-    .header("Content-Type", "application/json")
-    .json(&updated_user)?
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}users/{}", base_url(), updated_user.id);
+    let user: User = api_request("PUT", &url, Some(updated_user)).await?;
 
-    println!("get_all_user, response: {}", user);
+    println!("update_a_user, response: {}", user);
     Ok(user)
 }
 
 pub async fn delete_a_user(user_id: u32) -> Result<User> {
-    let response: User = Request::delete(format!("{}users/{}", base_url(), user_id))
-    .header("Content-Type", "application/json")
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}users/{}", base_url(), user_id);
+    let response: User = api_request("DELETE", &url, None::<()>).await?;
 
     println!("delete_a_user, response: {}", response);
     Ok(response)

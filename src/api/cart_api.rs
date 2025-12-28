@@ -1,96 +1,69 @@
+use crate::api::_api_request::api_request;
 use anyhow::Result;
-use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
+use std::fmt;
+use std::option::Option::None;
 
 // imported from ./product_api file
-use product_api::Product;
+use crate::api::product_api::Product;
 
-struct Cart {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Cart {
     id: u32,
     user_id: u32,
     products: Vec<Product>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub async fn get_all_carts() -> Result<Vec<Cart>> {
-    let carts: Vec<Cart> = Request::get(format!(
-        "{}carts",
-        option_env!("BASE_URL").unwrap_or("https://fakestoreapi.com/")
-    ))
-    .header("Content-Type", "application/json")
-    .send()
-    .await?
-    .json()
-    .await?;
+impl fmt::Display for Cart {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "User:: ID:{}, user_id:{}, products:{:#?}",
+            self.id, self.user_id, self.products
+        )
+    }
+}
 
-    println!("get_all_carts, response: {}", carts);
+fn base_url() -> &'static str {
+    option_env!("BASE_URL").unwrap_or("https://fakestoreapi.com/")
+}
+
+pub async fn get_all_carts() -> Result<Vec<Cart>> {
+    let url = format!("{}carts", base_url());
+    let carts: Vec<Cart> = api_request("GET", &url, None::<()>).await?;
+
+    println!("get_all_carts, response: {:#?}", carts);
     Ok(carts)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub async fn get_a_cart(cart_id: u32) -> Result<Cart> {
-    let cart: Cart = Request::get(format!(
-        "{}carts/{}",
-        option_env!("BASE_URL").unwrap_or("https://fakestoreapi.com/"),
-        cart_id
-    ))
-    .header("Content-Type", "application/json")
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}carts/{}", base_url(), cart_id);
+    let cart: Cart = api_request("GET", &url, None::<()>).await?;
 
-    println!("get_a_cart, response: {}", cart);
+    println!("get_a_cart, response: {:#?}", cart);
     Ok(cart)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub async fn add_a_cart(new_cart: Cart) -> Result<Cart> {
-    let cart: Cart = Request::post(format!(
-        "{}carts",
-        option_env!("BASE_URL").unwrap_or("https://fakestoreapi.com/"),
-    ))
-    .header("Content-Type", "application/json")
-    .json(&new_cart)?
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}carts", base_url());
+    let cart: Cart = api_request("POST", &url, Some(new_cart)).await?;
 
-    println!("add_a_cart, response: {}", cart);
+    println!("add_a_cart, response: {:#?}", cart);
     Ok(cart)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub async fn update_a_cart(updated_cart: Cart) -> Result<Cart> {
-    let cart: Cart = Request::put(format!(
-        "{}carts",
-        option_env!("BASE_URL").unwrap_or("https://fakestoreapi.com/"),
-    ))
-    .header("Content-Type", "application/json")
-    .json(&updated_cart)?
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}carts", base_url());
+    let cart: Cart = api_request("PUT", &url, Some(updated_cart)).await?;
 
-    println!("update_a_cart, response: {}", cart);
+    println!("update_a_cart, response: {:#?}", cart);
     Ok(cart)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub async fn delete_a_cart(cart_id: u32) -> Result<Cart> {
-    let response: Cart = Request::delete(format!(
-        "{}carts/{}",
-        option_env!("BASE_URL").unwrap_or("https://fakestoreapi.com/"),
-        cart_id,
-    ))
-    .header("Content-Type", "application/json")
-    .send()
-    .await?
-    .json()
-    .await?;
+    let url = format!("{}carts/{}", base_url(), cart_id);
+    let cart: Cart = api_request("DELETE", &url, None::<()>).await?;
 
-    println!("delete_a_cart, response: {}", response);
-    Ok(response)
+    println!("delete_a_cart, response: {:#?}", cart);
+    Ok(cart)
 }
