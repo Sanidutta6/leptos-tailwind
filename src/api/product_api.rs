@@ -3,6 +3,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use crate::api::_api_request::api_request;
 use std::option::Option::None;
+use leptos::logging::log;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Product {
@@ -33,7 +34,7 @@ pub async fn get_all_products() -> Result<Vec<Product>> {
     let url = format!("{}products", base_url());
     let products: Vec<Product> = api_request("GET", &url, None::<()>).await?;
 
-    println!("get_all_products, response: {:#?}", products);
+    log!("[get_all_products], response: {:#?}", products);
     Ok(products)
 }
 
@@ -41,7 +42,7 @@ pub async fn get_a_product(product_id: u32) -> Result<Product> {
     let url = format!("{}products/{}", base_url(), product_id);
     let product: Product = api_request("GET", &url, None::<()>).await?;
 
-    println!("get_a_product, response: {:#?}", product);
+    log!("[get_a_product], response: {:#?}", product);
     Ok(product)
 }
 
@@ -49,7 +50,7 @@ pub async fn add_a_product(new_product: Product) -> Result<Product> {
     let url = format!("{}products", base_url());
     let product: Product = api_request("POST", &url, Some(new_product)).await?;
 
-    println!("add_a_product, response: {:#?}", product);
+    log!("[add_a_product], response: {:#?}", product);
     Ok(product)
 }
 
@@ -57,7 +58,7 @@ pub async fn update_a_product(updated_product: Product) -> Result<Product> {
     let url = format!("{}products", base_url());
     let product: Product = api_request("PUT", &url, Some(updated_product)).await?;
 
-    println!("update_a_product, response: {:#?}", product);
+    log!("[update_a_product], response: {:#?}", product);
     Ok(product)
 }
 
@@ -65,6 +66,6 @@ pub async fn delete_a_product(product_id: u32) -> Result<Product> {
     let url = format!("{}products/{}", base_url(), product_id);
     let product: Product = api_request("DELETE", &url, None::<()>).await?;
 
-    println!("delete_a_product, response: {:#?}", product);
+    log!("[delete_a_product], response: {:#?}", product);
     Ok(product)
 }

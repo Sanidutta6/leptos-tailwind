@@ -14,7 +14,7 @@ pub fn Home() -> impl IntoView {
 
     view! {
         <main>
-            <div class="bg-gradient-to-tl from-blue-800 to-blue-500 text-white font-mono flex flex-col min-h-screen p-8">
+            <div class="bg-gradient-to-tl from-blue-800 to-blue-500 font-mono flex flex-col min-h-screen p-8">
                 <div class="flex flex-col items-center justify-center m-auto gap-4">
 
                     <h1 class="text-2xl font-bold italic mb-4">"Authentication"</h1>

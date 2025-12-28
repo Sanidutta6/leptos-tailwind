@@ -1,6 +1,7 @@
 use crate::api::_api_request::api_request;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use leptos::logging::log;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LoginRequest {
@@ -21,6 +22,6 @@ pub async fn try_login(credentials: LoginRequest) -> Result<LoginResponse> {
     let url = format!("{}auth/login", base_url());
     let response: LoginResponse = api_request("POST", &url, Some(credentials)).await?;
 
-    println!("try_login, response: {:#?}", response);
+    log!("try_login, response: {:#?}", response);
     Ok(response)
 }
