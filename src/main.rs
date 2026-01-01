@@ -5,6 +5,7 @@ mod components;
 mod pages;
 mod api;
 mod layouts;
+mod utils;
 
 use app::App;
 

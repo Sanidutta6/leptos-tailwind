@@ -1,10 +1,9 @@
-use crate::api::auth_api::{LoginRequest, LoginResponse, try_login};
+use crate::api::auth_api::{LoginRequest, try_login};
 use crate::components::base::button::{Button, ButtonVariant};
 use leptos::prelude::*;
 
 #[component]
 pub fn Home() -> impl IntoView {
-    // 1. Use new_local instead of new to allow non-Send futures (like JsFuture/gloo-net)
     let login_action = Action::new_local(|input: &LoginRequest| {
         let input = input.clone();
         async move { try_login(input).await.map_err(|e| e.to_string()) }
