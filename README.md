@@ -8,12 +8,14 @@ Links
 - Leptos: https://github.com/leptos-rs/leptos
 - Tailwind CSS: https://tailwindcss.com
 - Trunk (recommended dev server / bundler for Leptos WASM): https://trunkrs.dev
+- Fake Store: https://fakestoreapi.com/
 
 Features
 - Leptos for reactive UI and optional SSR
 - Tailwind CSS for utility-first styling
 - Example Tailwind setup and build/watch scripts
-- Development workflow notes for both WASM (client-side) and optional server-side rendering (SSR)
+- Development workflow notes for both WASM (client-side)
+- REST Api calling
 
 Prerequisites
 - Rust (stable) — install via rustup: https://rustup.rs
@@ -93,3 +95,4 @@ If your app requires environment variables (API URLs, feature flags), prefer:
 Acknowledgements
 - Leptos (Rust) — https://github.com/leptos-rs/leptos
 - Tailwind CSS — https://tailwindcss.com
+- Fake Store — https://fakestoreapi.com/

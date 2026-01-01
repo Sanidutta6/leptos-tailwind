@@ -2,6 +2,8 @@ use leptos::{prelude::*, server::codee::string::FromToStringCodec};
 use leptos_router::{NavigateOptions, components::Outlet, hooks::use_navigate};
 use leptos_use::use_cookie;
 
+use crate::components::ui::side_navigation::SideNavigation;
+
 #[component]
 pub fn PrivateLayout() -> impl IntoView {
     let navigate = use_navigate();
@@ -19,14 +21,17 @@ pub fn PrivateLayout() -> impl IntoView {
         }
     });
 
-    // 3. Handle the "UI" (Rendering) using Show
-    // This ensures types are compatible and Outlet only renders if authorized
     view! {
         <Show
             when=move || get_cookie.get().is_some()
             fallback=|| view! { <div>"Redirecting..."</div> }
         >
-            <Outlet />
+            <div class="flex h-screen">
+                <SideNavigation />
+                <main class="flex flex-1 w-full">
+                    <Outlet />
+                </main>
+            </div>
         </Show>
     }
 }
