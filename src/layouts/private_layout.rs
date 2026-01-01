@@ -1,18 +1,14 @@
-use crate::utils::cookies::get_cookie;
-use leptos::prelude::*;
+use leptos::{prelude::*, server::codee::string::FromToStringCodec};
 use leptos_router::{NavigateOptions, components::Outlet, hooks::use_navigate};
+use leptos_use::use_cookie;
 
 #[component]
 pub fn PrivateLayout() -> impl IntoView {
     let navigate = use_navigate();
+    let (get_cookie, _) = use_cookie::<String, FromToStringCodec>("auth_token");
 
-    // 1. Create a reactive signal for the token
-    // Using Memo ensures the check runs reactively
-    let auth_token = Memo::new(move |_| get_cookie("auth_token"));
-
-    // 2. Handle the "Action" (Redirection) in an Effect
     Effect::new(move |_| {
-        if auth_token.get().is_none() {
+        if get_cookie.get().is_none() {
             navigate(
                 "/login",
                 NavigateOptions {
@@ -27,7 +23,7 @@ pub fn PrivateLayout() -> impl IntoView {
     // This ensures types are compatible and Outlet only renders if authorized
     view! {
         <Show
-            when=move || auth_token.get().is_some()
+            when=move || get_cookie.get().is_some()
             fallback=|| view! { <div>"Redirecting..."</div> }
         >
             <Outlet />

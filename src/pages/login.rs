@@ -1,8 +1,8 @@
 use crate::api::auth_api::{LoginRequest, try_login};
-use crate::utils::cookies::set_cookie;
-use leptos::{ev::Event, ev::SubmitEvent, prelude::*, task::spawn_local, web_sys};
+use leptos::{ev::{Event, SubmitEvent}, prelude::*, server::codee::string::FromToStringCodec, task::spawn_local, web_sys};
 use leptos_router::components::A;
 use leptos_router::hooks::use_navigate;
+use leptos_use::use_cookie;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone)]
@@ -14,6 +14,7 @@ struct FormData {
 #[component]
 pub fn Login() -> impl IntoView {
     let navigate = use_navigate();
+    let (_, set_cookie) = use_cookie::<String, FromToStringCodec>("auth_token");
     let (form_data, set_form_data) = signal(FormData::default());
     let (err, set_err) = signal(String::new());
 
@@ -45,7 +46,7 @@ pub fn Login() -> impl IntoView {
             match response {
                 Ok(result) => {
                     set_form_data.set(FormData::default());
-                    set_cookie("auth_token", result.token);
+                    set_cookie.set(Some(result.token));
                     navigate_clone("/dashboard", Default::default());
                 }
                 Err(error_msg) => {
