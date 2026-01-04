@@ -221,67 +221,79 @@ pub fn SidebarInset(#[prop(optional)] class: String, children: Children) -> impl
 }
 
 #[component]
-pub fn SidebarHeader(#[prop[optional]] class: String) -> impl IntoView {
+pub fn SidebarHeader(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-header"
             data-sidebar="header"
             class=cn!("flex flex-col gap-2 p-2", class)
-        />
+        >
+            {children()}
+        </div>
     }
 }
 
 #[component]
-pub fn SidebarFooter(#[prop[optional]] class: String) -> impl IntoView {
+pub fn SidebarFooter(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-footer"
             data-sidebar="footer"
             class=cn!("flex flex-col gap-2 p-2", class)
-        />
+        >
+            {children()}
+        </div>
     }
 }
 
 #[component]
-pub fn SidebarContent(#[prop[optional]] class: String) -> impl IntoView {
+pub fn SidebarContent(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-content"
             data-sidebar="content"
             class=cn!("flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden", class)
-        />
+        >
+            {children()}
+        </div>
     }
 }
 
 #[component]
-pub fn SidebarGroup(#[prop[optional]] class: String) -> impl IntoView {
+pub fn SidebarGroup(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-group"
             data-sidebar="group"
             class=cn!("relative flex w-full min-w-0 flex-col p-2", class)
-        />
+        >
+            {children()}
+        </div>
     }
 }
 
 #[component]
-pub fn SidebarMenu(#[prop[optional]] class: String) -> impl IntoView {
+pub fn SidebarMenu(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
         <ul
             data-slot="sidebar-menu"
             data-sidebar="menu"
             class=cn!("flex w-full min-w-0 flex-col gap-1", class)
-        />
+        >
+            {children()}
+        </ul>
     }
 }
 
 #[component]
-pub fn SidebarMenuItem(#[prop[optional]] class: String) -> impl IntoView {
+pub fn SidebarMenuItem(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
         <li
             data-slot="sidebar-menu-item"
             data-sidebar="menu-item"
             class=cn!("group/menu-item relative", class)
-        />
+        >
+            {children()}
+        </li>
     }
 }

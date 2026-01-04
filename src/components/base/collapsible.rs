@@ -62,7 +62,7 @@ pub fn CollapsibleTrigger(
                         {children()}
                     </div>
                 </>
-            }.into_view(),
+            }.into_any(),
             false => view! {
                 <>
                     <button
@@ -80,7 +80,7 @@ pub fn CollapsibleTrigger(
                         {children()}
                     </button>
                 </>
-            }.into_view(),
+            }.into_any(),
         }}
     }
 }

@@ -2,4 +2,4 @@
 
 pub mod public_navigation;
 pub mod public_footer;
-pub mod side_navigation;
+pub mod sidebar_navigation;

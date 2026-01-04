@@ -1,8 +1,9 @@
-use crate::sidebar::{
+use crate::components::base::sidebar::{
     Sidebar, SidebarCollapsible, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader,
     SidebarMenu, SidebarMenuItem, SidebarSide, SidebarTrigger, SidebarVariant,
 };
 use leptos::prelude::*;
+use leptos_router::components::A;
 
 #[derive(Clone)]
 struct NavMenuItem {
@@ -81,11 +82,13 @@ pub fn SidebarNavigation() -> impl IntoView {
     let main_items = nav_menu_items
         .iter()
         .filter(|item| item.group == "main")
+        .cloned()
         .collect::<Vec<_>>();
 
     let settings_items = nav_menu_items
         .iter()
         .filter(|item| item.group == "settings")
+        .cloned()
         .collect::<Vec<_>>();
 
     view! {
@@ -95,12 +98,12 @@ pub fn SidebarNavigation() -> impl IntoView {
             collapsible=SidebarCollapsible::Offcanvas
             class="bg-sidebar"
         >
-            <SidebarHeader class="p-4 border-b border-sidebar-border">
+            <SidebarHeader class="p-4 border-b border-sidebar-border".to_string()>
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-sidebar-foreground">
                         "My Application"
                     </h2>
-                    <SidebarTrigger class="md:hidden" />
+                    <SidebarTrigger class="md:hidden".to_string() />
                 </div>
                 <p class="text-sm text-muted-foreground">
                     "Welcome back, User"
@@ -115,10 +118,10 @@ pub fn SidebarNavigation() -> impl IntoView {
                     <SidebarMenu>
                         {main_items.into_iter().map(|item| {
                             view! {
-                                <SidebarMenuItem class="rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                                    <a
+                                <SidebarMenuItem class="rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground".to_string()>
+                                    <A
                                         href={item.href}
-                                        class="flex items-center gap-3 px-3 py-2 text-sm transition-colors"
+                                        attr:class="flex items-center gap-3 px-3 py-2 text-sm transition-colors"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -140,11 +143,11 @@ pub fn SidebarNavigation() -> impl IntoView {
                                                 <span class="ml-auto text-xs text-muted-foreground">
                                                     {badge}
                                                 </span>
-                                            }.into_view()
+                                            }.into_any()
                                         } else {
-                                            view! {}.into_view()
+                                            view! {}.into_any()
                                         }}
-                                    </a>
+                                    </A>
                                 </SidebarMenuItem>
                             }
                         }).collect_view()}
@@ -158,10 +161,10 @@ pub fn SidebarNavigation() -> impl IntoView {
                     <SidebarMenu>
                         {settings_items.into_iter().map(|item| {
                             view! {
-                                <SidebarMenuItem class="rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                                    <a
+                                <SidebarMenuItem class="rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground".to_string()>
+                                    <A
                                         href={item.href}
-                                        class="flex items-center gap-3 px-3 py-2 text-sm transition-colors"
+                                        attr:class="flex items-center gap-3 px-3 py-2 text-sm transition-colors"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -183,23 +186,23 @@ pub fn SidebarNavigation() -> impl IntoView {
                                                 <span class="ml-auto text-xs text-muted-foreground">
                                                     {badge}
                                                 </span>
-                                            }.into_view()
+                                            }.into_any()
                                         } else {
-                                            view! {}.into_view()
+                                            view! {}.into_any()
                                         }}
-                                    </a>
+                                    </A>
                                 </SidebarMenuItem>
                             }
                         }).collect_view()}
                     </SidebarMenu>
                 </SidebarGroup>
 
-                <SidebarGroup class="mt-auto">
+                <SidebarGroup class="mt-auto".to_string()>
                     <SidebarMenu>
-                        <SidebarMenuItem class="rounded-md bg-sidebar-accent text-sidebar-accent-foreground">
-                            <a
+                        <SidebarMenuItem class="rounded-md bg-sidebar-accent text-sidebar-accent-foreground".to_string()>
+                            <A
                                 href="/upgrade"
-                                class="flex items-center gap-3 px-3 py-2 text-sm"
+                                attr:class="flex items-center gap-3 px-3 py-2 text-sm"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles">
                                     <path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/>
@@ -209,13 +212,13 @@ pub fn SidebarNavigation() -> impl IntoView {
                                     <path d="M17 19h4"/>
                                 </svg>
                                 <span class="flex-1">"Upgrade to Pro"</span>
-                            </a>
+                            </A>
                         </SidebarMenuItem>
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter class="p-4 border-t border-sidebar-border">
+            <SidebarFooter class="p-4 border-t border-sidebar-border".to_string()>
                 <div class="flex items-center gap-3">
                     <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                         <span class="text-sm font-medium text-primary">"U"</span>
@@ -228,7 +231,7 @@ pub fn SidebarNavigation() -> impl IntoView {
                             "user@example.com"
                         </p>
                     </div>
-                    <SidebarTrigger class="hidden md:block" />
+                    <SidebarTrigger class="hidden md:block".to_string() />
                 </div>
             </SidebarFooter>
         </Sidebar>

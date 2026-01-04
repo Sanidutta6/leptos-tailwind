@@ -2,7 +2,7 @@ use leptos::{prelude::*, server::codee::string::FromToStringCodec};
 use leptos_router::{NavigateOptions, components::Outlet, hooks::use_navigate};
 use leptos_use::use_cookie;
 
-use crate::components::{base::sidebar::SidebarProvider, ui::side_navigation::SideNavigation};
+use crate::components::{base::sidebar::SidebarProvider, ui::sidebar_navigation::SidebarNavigation};
 
 #[component]
 pub fn PrivateLayout() -> impl IntoView {
@@ -28,7 +28,7 @@ pub fn PrivateLayout() -> impl IntoView {
         >
             <SidebarProvider>
                 <div class="flex h-screen">
-                    <SideNavigation />
+                    <SidebarNavigation />
                     <main class="flex flex-1 w-full">
                         <Outlet />
                     </main>
