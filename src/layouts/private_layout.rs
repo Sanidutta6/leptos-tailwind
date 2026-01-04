@@ -2,7 +2,7 @@ use leptos::{prelude::*, server::codee::string::FromToStringCodec};
 use leptos_router::{NavigateOptions, components::Outlet, hooks::use_navigate};
 use leptos_use::use_cookie;
 
-use crate::components::ui::side_navigation::SideNavigation;
+use crate::components::{base::sidebar::SidebarProvider, ui::side_navigation::SideNavigation};
 
 #[component]
 pub fn PrivateLayout() -> impl IntoView {
@@ -26,12 +26,14 @@ pub fn PrivateLayout() -> impl IntoView {
             when=move || get_cookie.get().is_some()
             fallback=|| view! { <div>"Redirecting..."</div> }
         >
-            <div class="flex h-screen">
-                <SideNavigation />
-                <main class="flex flex-1 w-full">
-                    <Outlet />
-                </main>
-            </div>
+            <SidebarProvider>
+                <div class="flex h-screen">
+                    <SideNavigation />
+                    <main class="flex flex-1 w-full">
+                        <Outlet />
+                    </main>
+                </div>
+            </SidebarProvider>
         </Show>
     }
 }
