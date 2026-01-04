@@ -1,12 +1,18 @@
-use leptos::prelude::*;
+use leptos::{ev, prelude::*, tachys::html::attribute::any_attribute::AnyAttribute};
 
 use super::button::{Button, ButtonSize, ButtonVariant};
 use crate::cn;
 
 // For SidebarProvider
+#[derive(Copy, Clone, PartialEq)]
+pub enum SidebarState {
+    Expanded,
+    Collapsed,
+}
+
 #[derive(Copy, Clone)]
 pub struct SidebarContext {
-    pub state: String,
+    pub state: SidebarState,
     pub open: ReadSignal<bool>,
     pub set_open: Callback<bool>,
     pub toggle_sidebar: Callback<()>,
@@ -36,6 +42,7 @@ pub enum SidebarCollapsible {
     None,
 }
 
+// Components
 #[component]
 pub fn SidebarProvider(
     #[prop(optional, default = true)] default_open: bool,
@@ -62,15 +69,15 @@ pub fn SidebarProvider(
     // In case if reactive state is needed.
     // let state = move || if ctx.open.get() { "expanded" } else { "collapsed" };
     let state = if open.unwrap_or(is_open).get() == true {
-        "expanded"
+        SidebarState::Expanded
     } else {
-        "collapsed"
+        SidebarState::Collapsed
     };
 
     // 3. Provide context using the struct
     provide_context(SidebarContext {
         // Use the passed-in signal if available, otherwise the local one
-        state: state.to_string(),
+        state: state,
         open: open.unwrap_or(is_open),
         set_open: change_open,
         toggle_sidebar,
@@ -87,7 +94,7 @@ pub fn Sidebar(
     #[prop(optional)] variant: SidebarVariant,
     #[prop(optional)] collapsible: SidebarCollapsible,
     #[prop(optional, into)] class: String,
-    #[prop(attrs)] attributes: Attributes, // Captures ...props
+    #[prop(attrs)] attributes: Vec<AnyAttribute>, // Captures ...props
     children: Children,
 ) -> impl IntoView {
     let ctx = expect_context::<SidebarContext>();
@@ -107,11 +114,16 @@ pub fn Sidebar(
         SidebarCollapsible::Icon => "icon",
         SidebarCollapsible::None => "none",
     };
+    let state = if ctx.state == SidebarState::Collapsed {
+        "collapsed"
+    } else {
+        "expanded"
+    };
 
     view! {
         <div
             class="group peer text-sidebar-foreground hidden md:block"
-            data-state=ctx.state
+            data-state=state
             data-collapsible=collapsible_str
             data-variant=variant_str
             data-side=side_str
@@ -186,8 +198,25 @@ pub fn SidebarTrigger(
                 }
             }
         >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left-icon lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
             <span class="sr-only">"Toggle Sidebar"</span>
         </Button>
+    }
+}
+
+#[component]
+pub fn SidebarInset(#[prop(optional)] class: String, children: Children) -> impl IntoView {
+    view! {
+        <main
+            data-slot="sidebar-inset"
+            class=cn!(
+              "bg-background relative flex w-full flex-1 flex-col",
+              "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+              class
+            )
+        >
+            {children()}
+        </main>
     }
 }
 
@@ -226,11 +255,33 @@ pub fn SidebarContent(#[prop[optional]] class: String) -> impl IntoView {
 
 #[component]
 pub fn SidebarGroup(#[prop[optional]] class: String) -> impl IntoView {
-  view! {
+    view! {
         <div
             data-slot="sidebar-group"
             data-sidebar="group"
             class=cn!("relative flex w-full min-w-0 flex-col p-2", class)
+        />
+    }
+}
+
+#[component]
+pub fn SidebarMenu(#[prop[optional]] class: String) -> impl IntoView {
+    view! {
+        <ul
+            data-slot="sidebar-menu"
+            data-sidebar="menu"
+            class=cn!("flex w-full min-w-0 flex-col gap-1", class)
+        />
+    }
+}
+
+#[component]
+pub fn SidebarMenuItem(#[prop[optional]] class: String) -> impl IntoView {
+    view! {
+        <li
+            data-slot="sidebar-menu-item"
+            data-sidebar="menu-item"
+            class=cn!("group/menu-item relative", class)
         />
     }
 }
