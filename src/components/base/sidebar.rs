@@ -1,4 +1,5 @@
 use leptos::{ev, prelude::*, tachys::html::attribute::any_attribute::AnyAttribute};
+use leptos_router::components::A;
 
 use super::button::{Button, ButtonSize, ButtonVariant};
 use crate::cn;
@@ -300,36 +301,194 @@ pub fn SidebarMenuItem(#[prop[optional]] class: String, children: Children) -> i
 
 // SidebarGroupLabel, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem
 #[component]
-pub fn SidebarGroupLabel(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarGroupLabel(
+    #[prop(optional, into)] class: String,
+    #[prop(attrs)] attributes: Vec<AnyAttribute>,
+    children: Children,
+) -> impl IntoView {
     view! {
-        "SidebarGroupLabel"
+        <div
+            data-slot="sidebar-group-label"
+            data-sidebar="group-label"
+            class=cn!(
+                "cn-sidebar-group-label flex shrink-0 items-center outline-hidden [&>svg]:shrink-0",
+                class
+            )
+            {..attributes}
+        >
+            {children()}
+        </div>
     }
 }
 
+// Variants for SidebarMenuButton
+#[derive(Default, Clone, Copy, PartialEq)]
+pub enum SidebarMenuButtonVariant {
+    #[default]
+    Default,
+    Outline,
+    Ghost,
+    Subtle,
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Debug)]
+pub enum SidebarMenuButtonSize {
+    #[default]
+    Default,
+    Sm,
+    Lg,
+    Icon,
+}
+
 #[component]
-pub fn SidebarMenuButton(#[prop[optional]] class: String, children: Children) -> impl IntoView {
-    view! {
-        {children()}
+pub fn SidebarMenuButton(
+    #[prop(optional, default = false)] is_active: bool,
+    #[prop(optional, default = SidebarMenuButtonVariant::Default)]
+    variant: SidebarMenuButtonVariant,
+    #[prop(optional, default = SidebarMenuButtonSize::Default)] size: SidebarMenuButtonSize,
+    #[prop(optional, into)] title: String,
+    #[prop(optional, into)] class: String,
+    #[prop(optional)] as_child: bool,
+    #[prop(attrs)] attributes: Vec<AnyAttribute>,
+    children: Children,
+) -> impl IntoView {
+    // Generate variant and size classes
+    let variant_class = match variant {
+        SidebarMenuButtonVariant::Default => {
+            "bg-transparent hover:bg-accent hover:text-accent-foreground"
+        }
+        SidebarMenuButtonVariant::Outline => {
+            "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground"
+        }
+        SidebarMenuButtonVariant::Ghost => "hover:bg-accent hover:text-accent-foreground",
+        SidebarMenuButtonVariant::Subtle => "text-muted-foreground hover:text-foreground",
+    };
+
+    let size_class = match size {
+        SidebarMenuButtonSize::Default => "h-9 px-3 py-2",
+        SidebarMenuButtonSize::Sm => "h-8 px-2 text-xs",
+        SidebarMenuButtonSize::Lg => "h-10 px-4",
+        SidebarMenuButtonSize::Icon => "h-9 w-9",
+    };
+
+    let base_classes = "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2";
+    let active_class = if is_active {
+        "bg-accent text-accent-foreground"
+    } else {
+        ""
+    };
+
+    if as_child {
+        // For asChild pattern, render the first child with added props
+        let children_vec = children();
+
+        // This is a simplified asChild implementation
+        // In a real implementation, you'd need to clone the child and merge props
+        view! {
+            <div
+                title=title.clone()
+                class=cn!(base_classes, variant_class, size_class, active_class, class)
+                {..attributes}
+            >
+                {children_vec}
+            </div>
+        }.into_any()
+    } else {
+        view! {
+            <button
+                attr:data-slot="sidebar-menu-button"
+                attr:data-sidebar="menu-button"
+                attr:data-size={move || format!("{:?}", size).to_lowercase()}
+                attr:data-active={move || if is_active { "true" } else { "false" }}
+                title=title
+                class=cn!(base_classes, variant_class, size_class, active_class, class)
+                {..attributes}
+            >
+                {children()}
+            </button>
+        }.into_any()
     }
 }
 
 #[component]
 pub fn SidebarMenuSub(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
-        {children()}
+        <ul
+            data-slot="sidebar-menu-sub"
+            data-sidebar="menu-sub"
+            class=cn!("cn-sidebar-menu-sub flex min-w-0 flex-col", class)
+        >
+            {children()}
+        </ul>
     }
 }
 
 #[component]
-pub fn SidebarMenuSubButton(#[prop[optional]] class: String, children: Children) -> impl IntoView {
-    view! {
-        {children()}
+pub fn SidebarMenuSubButton(
+    #[prop(optional, default = false)] is_active: bool,
+    #[prop(optional, default = "md")] size: &'static str, // "sm" or "md"
+    #[prop(optional, into)] class: String,
+    #[prop(optional)] as_child: bool,
+    #[prop(attrs)] attributes: Vec<AnyAttribute>,
+    children: Children,
+) -> impl IntoView {
+    let size_class = match size {
+        "sm" => "text-xs",
+        "md" => "text-sm",
+        _ => "text-sm",
+    };
+
+    let active_class = if is_active {
+        "bg-accent text-accent-foreground"
+    } else {
+        ""
+    };
+
+    let base_classes = "cn-sidebar-menu-sub-button flex min-w-0 -translate-x-px items-center overflow-hidden outline-hidden group-data-[collapsible=icon]:hidden disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:shrink-0";
+
+    if as_child {
+        // For asChild pattern
+        let children_vec = children();
+        view! {
+            <div
+                data-slot="sidebar-menu-sub-button"
+                data-sidebar="menu-sub-button"
+                data-size=size
+                data-active={move || if is_active { "true" } else { "false" }}
+                class=cn!(base_classes, size_class, active_class, class)
+                {..attributes}
+            >
+                {children_vec}
+            </div>
+        }
+        .into_any()
+    } else {
+        view! {
+            <A
+                href=""
+                attr:data-slot="sidebar-menu-sub-button"
+                attr:data-sidebar="menu-sub-button"
+                attr:data-size=size
+                attr:data-active={move || if is_active { "true" } else { "false" }}
+                attr:class=cn!(base_classes, size_class, active_class, class)
+                {..attributes}
+            >
+                {children()}
+            </A>
+        }
+        .into_any()
     }
 }
 
 #[component]
 pub fn SidebarMenuSubItem(#[prop[optional]] class: String, children: Children) -> impl IntoView {
     view! {
-        {children()}
+        <li
+            data-slot="sidebar-menu-sub-item"
+            data-sidebar="menu-sub-item"
+            class=cn!("group/menu-sub-item relative", class)
+        >
+            {children()}
+        </li>
     }
 }
