@@ -297,3 +297,39 @@ pub fn SidebarMenuItem(#[prop[optional]] class: String, children: Children) -> i
         </li>
     }
 }
+
+// SidebarGroupLabel, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem
+#[component]
+pub fn SidebarGroupLabel(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+    view! {
+        "SidebarGroupLabel"
+    }
+}
+
+#[component]
+pub fn SidebarMenuButton(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+    view! {
+        {children()}
+    }
+}
+
+#[component]
+pub fn SidebarMenuSub(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+    view! {
+        {children()}
+    }
+}
+
+#[component]
+pub fn SidebarMenuSubButton(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+    view! {
+        {children()}
+    }
+}
+
+#[component]
+pub fn SidebarMenuSubItem(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+    view! {
+        {children()}
+    }
+}
