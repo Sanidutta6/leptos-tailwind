@@ -3,8 +3,8 @@ use leptos_router::{NavigateOptions, components::Outlet, hooks::use_navigate};
 use leptos_use::use_cookie;
 
 use crate::components::{
-    base::sidebar::{SidebarProvider, SidebarInset},
-    ui::sidebar_navigation::SidebarNavigation
+    base::sidebar::{SidebarInset, SidebarProvider},
+    ui::{private_header::PrivateHeader, sidebar_navigation::SidebarNavigation}
 };
 
 #[component]
@@ -33,6 +33,7 @@ pub fn PrivateLayout() -> impl IntoView {
                 <div class="flex h-screen">
                     <SidebarNavigation />
                     <SidebarInset>
+                        <PrivateHeader />
                         <Outlet />
                     </SidebarInset>
                 </div>
