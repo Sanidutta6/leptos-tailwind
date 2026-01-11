@@ -1,4 +1,4 @@
-use leptos::prelude::*;
+use leptos::{prelude::*, tachys::html::attribute::any_attribute::AnyAttribute};
 
 /// Variants like in your TS button
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -95,6 +95,12 @@ pub fn Button(
     /// Size prop
     #[prop(optional)]
     size: ButtonSize,
+    /// On Click Callback
+    #[prop(into, optional)]
+    on_click: Option<Callback<()>>,
+    /// Additional Attributes
+    #[prop(attrs)]
+    attrs: Vec<AnyAttribute>,
     /// Children like `<Button>Click</Button>`
     children: Children,
 ) -> impl IntoView {
@@ -103,6 +109,12 @@ pub fn Button(
         <button
             data-slot="button"
             class=button_class(variant, size, &class)
+            on:click=move |_| {
+                if let Some(callback) = &on_click {
+                    callback.run(());
+                }
+            }
+            {..attrs}
         >
             {children()}
         </button>
