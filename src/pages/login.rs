@@ -1,5 +1,12 @@
 use crate::api::auth_api::{LoginRequest, try_login};
-use leptos::{ev::{Event, SubmitEvent}, prelude::*, server::codee::string::FromToStringCodec, task::spawn_local, web_sys};
+use crate::components::base::icons::*;
+use leptos::{
+    ev::{Event, SubmitEvent},
+    prelude::*,
+    server::codee::string::FromToStringCodec,
+    task::spawn_local,
+    web_sys,
+};
 use leptos_router::components::A;
 use leptos_router::hooks::use_navigate;
 use leptos_use::use_cookie;
@@ -16,6 +23,7 @@ pub fn Login() -> impl IntoView {
     let navigate = use_navigate();
     let (_, set_cookie) = use_cookie::<String, FromToStringCodec>("auth_token");
     let (form_data, set_form_data) = signal(FormData::default());
+    let (is_submitting, set_is_submitting) = signal(false);
     let (err, set_err) = signal(String::new());
 
     let handle_input_change = move |ev: Event| {
@@ -35,6 +43,7 @@ pub fn Login() -> impl IntoView {
         ev.prevent_default();
         let current_data = form_data.get();
         let navigate_clone = navigate.clone();
+        set_is_submitting.set(true);
 
         spawn_local(async move {
             let login_request = LoginRequest {
@@ -54,6 +63,7 @@ pub fn Login() -> impl IntoView {
                 }
             }
         });
+        set_is_submitting.set(false);
     };
 
     view! {
@@ -103,8 +113,24 @@ pub fn Login() -> impl IntoView {
 
             <button
                 type="submit"
-                class="mt-8 py-3 w-full cursor-pointer rounded-md bg-indigo-600 text-white transition hover:bg-indigo-700"
+                disabled=is_submitting
+                class="mt-8 py-3 w-full cursor-pointer rounded-md bg-indigo-600 text-white transition hover:bg-indigo-700 flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:cursor-not-allowed"
             >
+                {move || if is_submitting.get() {
+                    view! {
+                        <IconView
+                            icon=Icon::LOADER_CIRCLE.clone()
+                            class="animate-spin"
+                        />
+                    }
+                } else {
+                    view! {
+                        <IconView>
+                            <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>
+                            <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+                        </IconView>
+                    }
+                }}
                 "Login"
             </button>
             <p class="text-center py-8">
