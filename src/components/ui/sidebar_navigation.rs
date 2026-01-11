@@ -1,8 +1,6 @@
 use crate::components::base::collapsible::{Collapsible, CollapsibleContent, CollapsibleTrigger};
 use crate::components::base::sidebar::{
-    Sidebar, SidebarCollapsible, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader,
-    SidebarMenu, SidebarMenuButton, SidebarMenuButtonSize, SidebarMenuButtonVariant,
-    SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarVariant,
+    Sidebar, SidebarCollapsible, SidebarContent, SidebarFooter, SidebarHeader, SidebarVariant,
 };
 use leptos::prelude::*;
 use leptos_router::components::A;
@@ -33,7 +31,7 @@ impl Icon {
 
 // Icon component
 #[component]
-pub fn Icon(#[prop(into)] icon: Icon, #[prop(optional, into)] class: String) -> impl IntoView {
+pub fn IconView(#[prop(into)] icon: Icon, #[prop(optional, into)] class: String) -> impl IntoView {
     view! {
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +43,7 @@ pub fn Icon(#[prop(into)] icon: Icon, #[prop(optional, into)] class: String) -> 
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class=format!("size-4 {}", class)
+            class=format!("size-5 {}", class)
         >
             <path d={icon.path} />
         </svg>
@@ -352,17 +350,7 @@ pub fn SidebarNavigation() -> impl IntoView {
     // Get current path (simplified - you'd use your router's current path)
     let (active_path, _) = signal("/");
 
-    // Helper functions
-    let is_active = move |url: Option<&str>| {
-        if let Some(url) = url {
-            active_path.get() == url
-        } else {
-            false
-        }
-    };
-
-    let is_active_parent = move |items: &[NavItem]| items.iter().any(|item| is_active(item.url));
-
+    // Helper function to check permissions
     let has_permission = |required_permissions: &[&str], user_permissions: &[&str]| {
         required_permissions
             .iter()
@@ -376,20 +364,14 @@ pub fn SidebarNavigation() -> impl IntoView {
             class="bg-background/80"
         >
             <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton>
-                            <div class="flex items-center">
-                                // Replace with your logo
-                                <div class="h-6 w-6 bg-primary rounded flex items-center justify-center">
-                                    <span class="text-white text-xs font-bold">"M"</span>
-                                </div>
-                                // <h1 class="ml-2 text-2xl font-bold">"Brand"</h1>
-                            </div>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+                <div class="flex items-center p-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:ml-1.5">
+                    <div class="h-6 w-6 bg-primary rounded flex items-center justify-center">
+                        <span class="text-white text-xs font-bold">"M"</span>
+                    </div>
+                    <span class="ml-2 font-semibold text-sm group-data-[collapsible=icon]:hidden">"Menu"</span>
+                </div>
             </SidebarHeader>
+
             <SidebarContent>
                 {nav_config.groups.into_iter().enumerate().map(|(group_index, group)| {
                     let group_class = if group_index == 1 {
@@ -399,106 +381,127 @@ pub fn SidebarNavigation() -> impl IntoView {
                     };
 
                     view! {
-                        <SidebarGroup class=group_class.to_string()>
-                            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-                            <SidebarMenu>
+                        <div class=format!("p-4 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:ml-1.5 {}", group_class)>
+                            {if !group.label.is_empty() {
+                                view! {
+                                    <div class="text-xs font-medium text-muted-foreground mb-2">
+                                        {group.label}
+                                    </div>
+                                }.into_any()
+                            } else {
+                                view! { <></> }.into_any()
+                            }}
+
+                            <div class="space-y-1">
                                 {group.items.into_iter()
                                     .filter(|item| has_permission(&item.permissions, user_permissions))
                                     .map(|item| {
                                         let item_clone = item.clone();
-                                        let is_parent_active = item.items.as_ref()
-                                            .map(|items| is_active_parent(items))
-                                            .unwrap_or(false);
 
-                                        view! {
-                                            <SidebarMenuItem>
-                                                {if let Some(sub_items) = item.items {
-                                                    let default_open = is_parent_active;
+                                        if let Some(sub_items) = item.items {
+                                            // Create a reactive signal for parent active state
+                                            let items_clone = sub_items.clone();
+                                            let is_parent_active = Signal::derive(move || {
+                                                items_clone.iter().any(|sub_item| {
+                                                    sub_item.url.as_ref().map_or(false, |u| active_path.get() == *u)
+                                                })
+                                            });
 
-                                                    view! {
-                                                        <Collapsible default_open=default_open class="group/collapsible".to_string()>
-                                                            <CollapsibleTrigger as_child=true>
-                                                                <SidebarMenuButton
-                                                                    is_active=is_parent_active
-                                                                    variant=SidebarMenuButtonVariant::Default  // or whichever variant you want
-                                                                    size=SidebarMenuButtonSize::Default        // or whichever size you want
-                                                                    title=item.title                           // Use the item title for the title attribute
-                                                                    class={
-                                                                        if is_parent_active {
-                                                                            "bg-ternary-background text-primary font-medium".to_string()
-                                                                        } else {
-                                                                            "".to_string()
-                                                                        }
+                                            // Get initial value for default_open
+                                            let default_open = is_parent_active.get_untracked();
+
+                                            view! {
+                                                <Collapsible default_open=default_open class="group/collapsible ml-0".to_string()>
+                                                    <CollapsibleTrigger as_child=true>
+                                                        <div class=move || {
+                                                            let base_classes = "flex items-center justify-between p-2 rounded-md hover:bg-muted transition-colors cursor-pointer w-full";
+                                                            let active_classes = if is_parent_active.get() {
+                                                                "bg-muted text-primary font-medium"
+                                                            } else {
+                                                                "text-foreground"
+                                                            };
+                                                            format!("{} {}", base_classes, active_classes)
+                                                        }>
+                                                            <div class="flex items-center gap-2">
+                                                                {item_clone.icon.map(|icon| view! { <IconView icon=icon /> })}
+                                                                <span class="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                                                            </div>
+                                                            <IconView
+                                                                icon=Icon::CHEVRON_RIGHT.clone()
+                                                                class="group-data-[collapsible=icon]:hidden ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                                                            />
+                                                        </div>
+                                                    </CollapsibleTrigger>
+                                                    <CollapsibleContent class="group-data-[collapsible=icon]:hidden">
+                                                        <div class="ml-4 pl-2 border-l border-border space-y-1 mt-1">
+                                                            {sub_items.into_iter()
+                                                                .filter(|sub_item| has_permission(&sub_item.permissions, user_permissions))
+                                                                .map(|sub_item| {
+                                                                    let sub_url = sub_item.url;
+                                                                    let is_sub_active = Signal::derive(move || {
+                                                                        sub_url.map_or(false, |u| active_path.get() == u)
+                                                                    });
+
+                                                                    view! {
+                                                                        <A
+                                                                            href=sub_item.url.unwrap_or("")
+                                                                            attr:class=move || {
+                                                                                let base_classes = "flex items-center gap-2 p-2 rounded-md hover:bg-muted transition-colors";
+                                                                                let active_classes = if is_sub_active.get() {
+                                                                                    "bg-muted text-primary font-medium"
+                                                                                } else {
+                                                                                    "text-foreground"
+                                                                                };
+                                                                                format!("{} {}", base_classes, active_classes)
+                                                                            }
+                                                                        >
+                                                                            <IconView icon=Icon::ARROW_RIGHT.clone() />
+                                                                            <span>{sub_item.title}</span>
+                                                                        </A>
                                                                     }
-                                                                >
-                                                                    {item_clone.icon.map(|icon| view! { <Icon icon=icon /> })}
-                                                                    <span>{item.title}</span>
-                                                                    <Icon
-                                                                        icon=Icon::CHEVRON_RIGHT.clone()
-                                                                        class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-                                                                    />
-                                                                </SidebarMenuButton>
-                                                            </CollapsibleTrigger>
-                                                            <CollapsibleContent>
-                                                                <SidebarMenuSub>
-                                                                    {sub_items.into_iter()
-                                                                        .filter(|sub_item| has_permission(&sub_item.permissions, user_permissions))
-                                                                        .map(|sub_item| {
-                                                                            let is_sub_active = is_active(sub_item.url);
+                                                                }).collect_view()}
+                                                        </div>
+                                                    </CollapsibleContent>
+                                                </Collapsible>
+                                            }.into_any()
+                                        } else {
+                                            let item_url = item.url;
+                                            let is_item_active = Signal::derive(move || {
+                                                item_url.map_or(false, |u| active_path.get() == u)
+                                            });
 
-                                                                            view! {
-                                                                                <SidebarMenuSubItem>
-                                                                                    <SidebarMenuSubButton
-                                                                                        as_child=true
-                                                                                        class={
-                                                                                            if is_sub_active {
-                                                                                                "bg-ternary-background text-primary font-medium [&_svg]:text-primary"
-                                                                                            } else {
-                                                                                                ""
-                                                                                            }
-                                                                                        }
-                                                                                    >
-                                                                                        <A href=sub_item.url.unwrap_or("")>
-                                                                                            <Icon icon=Icon::ARROW_RIGHT.clone() />
-                                                                                            <span>{sub_item.title}</span>
-                                                                                        </A>
-                                                                                    </SidebarMenuSubButton>
-                                                                                </SidebarMenuSubItem>
-                                                                            }.into_any()
-                                                                        }).collect_view()}
-                                                                </SidebarMenuSub>
-                                                            </CollapsibleContent>
-                                                        </Collapsible>
-                                                    }.into_any()
-                                                } else {
-                                                    let is_item_active = is_active(item.url);
-
-                                                    view! {
-                                                        <SidebarMenuButton
-                                                            as_child=true
-                                                            class={
-                                                                if is_item_active {
-                                                                    "bg-ternary-background text-primary font-medium"
-                                                                } else {
-                                                                    ""
-                                                                }
-                                                            }
-                                                        >
-                                                            <A href=item.url.unwrap_or("")>
-                                                                {item.icon.map(|icon| view! { <Icon icon=icon /> })}
-                                                                <span>{item.title}</span>
-                                                            </A>
-                                                        </SidebarMenuButton>
-                                                    }.into_any()
-                                                }}
-                                            </SidebarMenuItem>
+                                            view! {
+                                                <A
+                                                    href=item.url.unwrap_or("")
+                                                    attr:class=move || {
+                                                        let base_classes = "flex items-center gap-2 p-2 rounded-md hover:bg-muted transition-colors";
+                                                        let active_classes = if is_item_active.get() {
+                                                            "bg-muted text-primary font-medium"
+                                                        } else {
+                                                            "text-foreground"
+                                                        };
+                                                        format!("{} {}", base_classes, active_classes)
+                                                    }
+                                                >
+                                                    {item.icon.map(|icon| view! { <IconView icon=icon /> })}
+                                                    <span class="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                                                </A>
+                                            }.into_any()
                                         }
                                     }).collect_view()}
-                            </SidebarMenu>
-                        </SidebarGroup>
+                            </div>
+                        </div>
                     }
                 }).collect_view()}
             </SidebarContent>
+
+            <SidebarFooter>
+                <div class="p-4 border-t border-border">
+                    <div class="text-xs text-muted-foreground">
+                        "Sidebar Footer Content"
+                    </div>
+                </div>
+            </SidebarFooter>
         </Sidebar>
     }
 }
