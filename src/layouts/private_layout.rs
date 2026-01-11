@@ -30,13 +30,11 @@ pub fn PrivateLayout() -> impl IntoView {
             fallback=|| view! { <div>"Redirecting..."</div> }
         >
             <SidebarProvider>
-                <div class="flex h-screen">
-                    <SidebarNavigation />
-                    <SidebarInset>
-                        <PrivateHeader />
-                        <Outlet />
-                    </SidebarInset>
-                </div>
+                <SidebarNavigation />
+                <SidebarInset>
+                    <PrivateHeader />
+                    <Outlet />
+                </SidebarInset>
             </SidebarProvider>
         </Show>
     }
