@@ -1,11 +1,13 @@
-use leptos::{ev, prelude::*, tachys::html::attribute::any_attribute::AnyAttribute};
+use std::default;
+
+use leptos::{ev, logging::log, prelude::*, tachys::html::attribute::any_attribute::AnyAttribute};
 use leptos_router::components::A;
 
 use super::button::{Button, ButtonSize, ButtonVariant};
 use crate::cn;
 
 // For SidebarProvider
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum SidebarState {
     Expanded,
     Collapsed,
@@ -13,7 +15,7 @@ pub enum SidebarState {
 
 #[derive(Copy, Clone)]
 pub struct SidebarContext {
-    pub state: SidebarState,
+    pub state: Signal<SidebarState>, // Changed to Signal
     pub open: ReadSignal<bool>,
     pub set_open: Callback<bool>,
     pub toggle_sidebar: Callback<()>,
@@ -49,6 +51,7 @@ pub fn SidebarProvider(
     #[prop(optional, default = true)] default_open: bool,
     #[prop(optional)] open: Option<ReadSignal<bool>>,
     #[prop(optional)] set_open: Option<WriteSignal<bool>>,
+    #[prop(optional, default = String::from(""))] class: String,
     children: Children,
 ) -> impl IntoView {
     // 1. Create local state signals
@@ -67,25 +70,38 @@ pub fn SidebarProvider(
         change_open.run(!is_open.get());
     });
 
-    // In case if reactive state is needed.
-    // let state = move || if ctx.open.get() { "expanded" } else { "collapsed" };
-    let state = if open.unwrap_or(is_open).get() == true {
-        SidebarState::Expanded
-    } else {
-        SidebarState::Collapsed
-    };
+    // Use the passed-in signal if available, otherwise the local one
+    let open_signal = open.unwrap_or(is_open);
+
+    // Create a reactive state signal that derives from open_signal
+    let state = Signal::derive(move || {
+        if open_signal.get() {
+            SidebarState::Expanded
+        } else {
+            SidebarState::Collapsed
+        }
+    });
 
     // 3. Provide context using the struct
     provide_context(SidebarContext {
-        // Use the passed-in signal if available, otherwise the local one
-        state: state,
-        open: open.unwrap_or(is_open),
+        state,
+        open: open_signal,
         set_open: change_open,
         toggle_sidebar,
     });
 
     view! {
-        {children()}
+        <div
+            data-slot="sidebar-wrapper"
+            style=("--sidebar-width", "16rem")
+            style=("--sidebar-width-icon", "3rem")
+            class=cn!(
+                "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+                class
+            )
+        >
+            {children()}
+        </div>
     }
 }
 
@@ -111,21 +127,16 @@ pub fn Sidebar(
         SidebarVariant::Inset => "inset",
     };
     let collapsible_str = match collapsible {
-        SidebarCollapsible::Offcanvas => "offcanvas",
         SidebarCollapsible::Icon => "icon",
+        SidebarCollapsible::Offcanvas => "offcanvas",
         SidebarCollapsible::None => "none",
-    };
-    let state = if ctx.state == SidebarState::Collapsed {
-        "collapsed"
-    } else {
-        "expanded"
     };
 
     view! {
         <div
             class="group peer text-sidebar-foreground hidden md:block"
-            data-state=state
-            data-collapsible=collapsible_str
+            data-state=move || if ctx.state.get() == SidebarState::Collapsed { "collapsed" } else { "expanded" }
+            data-collapsible=move || if ctx.state.get() == SidebarState::Collapsed { collapsible_str } else { "" }
             data-variant=variant_str
             data-side=side_str
             data-slot="sidebar"
@@ -178,7 +189,7 @@ pub fn Sidebar(
 
 #[component]
 pub fn SidebarTrigger(
-    #[prop[optional]] class: String,
+    #[prop(optional)] class: String,
     #[prop(into, optional)] on_click: Option<Callback<ev::MouseEvent>>,
 ) -> impl IntoView {
     let ctx = expect_context::<SidebarContext>();
@@ -197,6 +208,9 @@ pub fn SidebarTrigger(
                 if let Some(cb) = on_click {
                     cb.run(ev);
                 }
+
+                // log
+                log!("sidebar state: {:#?} {:#?}", ctx.state.get_untracked(), ctx.open.get_untracked());
             }
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left-icon lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
@@ -222,7 +236,7 @@ pub fn SidebarInset(#[prop(optional)] class: String, children: Children) -> impl
 }
 
 #[component]
-pub fn SidebarHeader(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarHeader(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-header"
@@ -235,7 +249,7 @@ pub fn SidebarHeader(#[prop[optional]] class: String, children: Children) -> imp
 }
 
 #[component]
-pub fn SidebarFooter(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarFooter(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-footer"
@@ -248,7 +262,7 @@ pub fn SidebarFooter(#[prop[optional]] class: String, children: Children) -> imp
 }
 
 #[component]
-pub fn SidebarContent(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarContent(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-content"
@@ -261,7 +275,7 @@ pub fn SidebarContent(#[prop[optional]] class: String, children: Children) -> im
 }
 
 #[component]
-pub fn SidebarGroup(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarGroup(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <div
             data-slot="sidebar-group"
@@ -274,7 +288,7 @@ pub fn SidebarGroup(#[prop[optional]] class: String, children: Children) -> impl
 }
 
 #[component]
-pub fn SidebarMenu(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarMenu(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <ul
             data-slot="sidebar-menu"
@@ -287,7 +301,7 @@ pub fn SidebarMenu(#[prop[optional]] class: String, children: Children) -> impl 
 }
 
 #[component]
-pub fn SidebarMenuItem(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarMenuItem(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <li
             data-slot="sidebar-menu-item"
@@ -340,9 +354,15 @@ pub enum SidebarMenuButtonSize {
     Icon,
 }
 
+// Context to pass classes from parent to child when as_child=true
+#[derive(Clone, Copy)]
+pub struct SidebarMenuButtonClass {
+    pub get_class: fn() -> String,
+}
+
 #[component]
 pub fn SidebarMenuButton(
-    #[prop(optional, default = false)] is_active: bool,
+    #[prop(optional, default = Signal::derive(|| false))] is_active: Signal<bool>,
     #[prop(optional, default = SidebarMenuButtonVariant::Default)]
     variant: SidebarMenuButtonVariant,
     #[prop(optional, default = SidebarMenuButtonSize::Default)] size: SidebarMenuButtonSize,
@@ -372,46 +392,56 @@ pub fn SidebarMenuButton(
     };
 
     let base_classes = "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 gap-2";
-    let active_class = if is_active {
-        "bg-accent text-accent-foreground"
-    } else {
-        ""
-    };
 
     if as_child {
-        // For asChild pattern, render the first child with added props
-        let children_vec = children();
+        // For asChild pattern, provide a Signal that children can access
+        let class_signal = Signal::derive(move || {
+            cn!(
+                base_classes,
+                variant_class,
+                size_class,
+                if is_active.get() {
+                    "bg-accent text-accent-foreground"
+                } else {
+                    ""
+                },
+                class.clone()
+            )
+        });
 
-        // This is a simplified asChild implementation
-        // In a real implementation, you'd need to clone the child and merge props
+        provide_context(class_signal);
+
+        let children_vec = children();
         view! {
-            <div
-                title=title.clone()
-                class=cn!(base_classes, variant_class, size_class, active_class, class)
-                {..attributes}
-            >
-                {children_vec}
-            </div>
-        }.into_any()
+            {children_vec}
+        }
+        .into_any()
     } else {
         view! {
             <button
                 attr:data-slot="sidebar-menu-button"
                 attr:data-sidebar="menu-button"
                 attr:data-size={move || format!("{:?}", size).to_lowercase()}
-                attr:data-active={move || if is_active { "true" } else { "false" }}
+                attr:data-active={move || if is_active.get() { "true" } else { "false" }}
                 title=title
-                class=cn!(base_classes, variant_class, size_class, active_class, class)
+                class=move || cn!(
+                    base_classes,
+                    variant_class,
+                    size_class,
+                    if is_active.get() { "bg-accent text-accent-foreground" } else { "" },
+                    class.clone()
+                )
                 {..attributes}
             >
                 {children()}
             </button>
-        }.into_any()
+        }
+        .into_any()
     }
 }
 
 #[component]
-pub fn SidebarMenuSub(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarMenuSub(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <ul
             data-slot="sidebar-menu-sub"
@@ -454,7 +484,7 @@ pub fn SidebarMenuSubButton(
                 data-slot="sidebar-menu-sub-button"
                 data-sidebar="menu-sub-button"
                 data-size=size
-                data-active={move || if is_active { "true" } else { "false" }}
+                data-active={if is_active { "true" } else { "false" }}
                 class=cn!(base_classes, size_class, active_class, class)
                 {..attributes}
             >
@@ -469,7 +499,7 @@ pub fn SidebarMenuSubButton(
                 attr:data-slot="sidebar-menu-sub-button"
                 attr:data-sidebar="menu-sub-button"
                 attr:data-size=size
-                attr:data-active={move || if is_active { "true" } else { "false" }}
+                attr:data-active={if is_active { "true" } else { "false" }}
                 attr:class=cn!(base_classes, size_class, active_class, class)
                 {..attributes}
             >
@@ -481,7 +511,7 @@ pub fn SidebarMenuSubButton(
 }
 
 #[component]
-pub fn SidebarMenuSubItem(#[prop[optional]] class: String, children: Children) -> impl IntoView {
+pub fn SidebarMenuSubItem(#[prop(optional)] class: String, children: Children) -> impl IntoView {
     view! {
         <li
             data-slot="sidebar-menu-sub-item"
