@@ -19,6 +19,13 @@ pub fn app() -> impl IntoView {
                 // 2. Private Routes
                 <ParentRoute path=path!("") view=PrivateLayout>
                     <Route path=path!("/dashboard") view=Dashboard />
+                    <Route path=path!("/users") view=Dashboard />
+                    <Route path=path!("/users/create-new") view=Dashboard />
+                    <Route path=path!("/users/update") view=Dashboard />
+                    <Route path=path!("/products") view=Dashboard />
+                    <Route path=path!("/products/create-new") view=Dashboard />
+                    <Route path=path!("/products/update-product") view=Dashboard />
+                    <Route path=path!("/cart") view=Dashboard />
                 </ParentRoute>
             </Routes>
         </Router>
